@@ -49,18 +49,18 @@
     "up": "taze major -r -w -I"
   },
   "devDependencies": {
-    "@antfu/ni": "^0.19.0",
-    "@kirklin/eslint-config": "^0.2.5",
-    "@types/node": "^18.11.18",
-    "bumpp": "^8.2.1",
-    "eslint": "^8.32.0",
+    "@antfu/ni": "^0.20.0",
+    "@kirklin/eslint-config": "^0.2.7",
+    "@types/node": "^18.14.6",
+    "bumpp": "^9.0.0",
+    "eslint": "^8.35.0",
     "esno": "^0.16.3",
-    "pnpm": "^7.26.1",
-    "rimraf": "^4.1.2",
-    "taze": "^0.8.5",
-    "typescript": "^4.9.4",
-    "unbuild": "^1.1.1",
-    "vite": "^4.0.4",
-    "vitest": "^0.28.3"
+    "pnpm": "^7.29.1",
+    "rimraf": "^4.3.1",
+    "taze": "^0.9.0",
+    "typescript": "^4.9.5",
+    "unbuild": "^1.1.2",
+    "vite": "^4.1.4",
+    "vitest": "^0.29.2"
   }
 }
