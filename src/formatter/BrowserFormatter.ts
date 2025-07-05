@@ -21,6 +21,10 @@ export class BrowserFormatter extends Formatter {
   }
 
   public doWrite(level: Level, message: MessageFormat): void {
+    if (message.fields.length === 0) {
+      doLog(level, message.format, ...message.args);
+      return;
+    }
     console.groupCollapsed(message.format, ...message.args);
     message.fields.forEach((field) => {
       this.push(field.identifier, "#3794ff", "bold");
