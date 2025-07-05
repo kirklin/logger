@@ -33,6 +33,7 @@
     "postinstall": "npm run build",
     "release": "bumpp",
     "start": "esno src/index.ts",
+    "play": "vite playground",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "prepare": "simple-git-hooks",
