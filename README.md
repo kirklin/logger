@@ -16,7 +16,7 @@ pnpm i @kirklin/logger
 ```javascript
 import { field, logger } from "@kirklin/logger";
 
-logger.info("Loading container",	field("msg", 1),	field("msg2", { key: value }));
+logger.info("Loading container", field("msg", 1), field("msg2", { key: value }));
 ```
 
 ## Formatting
