@@ -22,3 +22,8 @@ logger.debug(() => {
   const complexData = { a: 1, b: 2 };
   return ["This is a debug message with complex data", field("data", complexData)];
 });
+
+// Test throttling
+for (let i = 0; i < 100; i++) {
+  logger.info("This is a spam message");
+}

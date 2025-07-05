@@ -2,6 +2,7 @@ import type { Field } from "./Field";
 import type { Formatter } from "./formatter/Formatter";
 import type { Extender, Message } from "./Message";
 import type { Argument, FieldArray, LogCallback } from "./types";
+import { field } from "./Field";
 import { BrowserFormatter } from "./formatter/BrowserFormatter";
 import { ServerFormatter } from "./formatter/ServerFormatter";
 import { Level } from "./Level";
@@ -9,9 +10,18 @@ import { Time } from "./Time";
 
 export class Logger {
   public level = Level.Info;
+  public throttle = 1000;
+  public throttleMin = 5;
 
   private readonly nameColor?: string;
   private muted = false;
+  private _lastLog: {
+    message?: Message;
+    serialized?: string;
+    count?: number;
+    time?: Date;
+    timeout?: ReturnType<typeof setTimeout>;
+  } = {};
 
   public constructor(
     private _formatter: Formatter,
@@ -129,11 +139,7 @@ export class Logger {
     return l;
   }
 
-  private handle(message: Message): void {
-    if (this.level > message.level || this.muted) {
-      return;
-    }
-
+  private _log(message: Message) {
     let passedFields = message.fields || [];
     if (typeof message.message === "function") {
       const values = message.message();
@@ -184,6 +190,54 @@ export class Logger {
         ...message,
       });
     });
+  }
+
+  private handle(message: Message): void {
+    if (this.level > message.level || this.muted) {
+      return;
+    }
+
+    const resolveLog = (newLog = false) => {
+      const repeated = (this._lastLog.count || 0) - this.throttleMin;
+      if (this._lastLog.message && repeated > 0) {
+        const lastMessage = this._lastLog.message;
+        const fields = lastMessage.fields || [];
+        if (repeated > 1) {
+          fields.push(field("repeated", `${repeated} times`));
+        }
+        this._log({ ...lastMessage, fields });
+        this._lastLog.count = 1;
+      }
+
+      if (newLog) {
+        this._lastLog.message = message;
+        this._log(message);
+      }
+    };
+
+    clearTimeout(this._lastLog.timeout);
+    const now = new Date();
+    const diffTime = this._lastLog.time ? now.getTime() - this._lastLog.time.getTime() : 0;
+    this._lastLog.time = now;
+
+    if (diffTime < this.throttle) {
+      try {
+        const serializedLog = JSON.stringify([message.message, message.fields]);
+        const isSameLog = this._lastLog.serialized === serializedLog;
+        this._lastLog.serialized = serializedLog;
+        if (isSameLog) {
+          this._lastLog.count = (this._lastLog.count || 0) + 1;
+          if (this._lastLog.count > this.throttleMin) {
+            this._lastLog.timeout = setTimeout(resolveLog, this.throttle);
+            return;
+          }
+        }
+      } catch {
+        // Circular References
+      }
+    }
+
+    resolveLog(true);
   }
 
   /**
