@@ -141,9 +141,11 @@ export class Logger {
       passedFields = values as FieldArray;
     }
 
-    const fields = (this.defaultFields
-      ? passedFields.filter(f => !!f).concat(this.defaultFields)
-      : passedFields.filter(f => !!f)) as Array<Field<Argument>>;
+    const fields = (
+      this.defaultFields
+        ? passedFields.concat(this.defaultFields)
+        : passedFields
+    ).filter((f): f is Field<Argument> => !!f);
 
     const now = Date.now();
     let times: Array<Field<Time>> = [];
