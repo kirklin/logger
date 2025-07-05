@@ -1,6 +1,0 @@
-{
-  "extends": "@kirklin",
-  "rules": {
-    "no-console": "off"
-  }
-}
