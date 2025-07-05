@@ -1,5 +1,5 @@
-import { Level } from "./Level";
 import type { Argument } from "./types";
+import { Level } from "./Level";
 
 export function doLog(level: Level, ...args: Argument): void {
   switch (level) {

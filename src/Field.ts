@@ -15,6 +15,6 @@ export class Field<T> {
 /**
  * A field to show with the message.
  */
-export const field = <T>(name: string, value: T): Field<T> => {
+export function field<T>(name: string, value: T): Field<T> {
   return new Field(name, value);
-};
+}

@@ -1,7 +1,7 @@
 import type { Level } from "../Level";
+import type { MessageFormat } from "./MessageFormat";
 import { doLog } from "../utils";
 import { Formatter } from "./Formatter";
-import type { MessageFormat } from "./MessageFormat";
 
 /**
  * Display logs in the browser using CSS in the output. Fields are displayed on
@@ -26,8 +26,8 @@ export class BrowserFormatter extends Formatter {
       this.push(field.identifier, "#3794ff", "bold");
       if (
         typeof field.value !== "undefined"
-                && field.value.constructor
-                && field.value.constructor.name
+        && field.value.constructor
+        && field.value.constructor.name
       ) {
         this.push(` (${field.value.constructor.name})`);
       }

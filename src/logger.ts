@@ -1,10 +1,10 @@
-import { Level } from "./Level";
+import type { Field } from "./Field";
 import type { Formatter } from "./formatter/Formatter";
+import type { Extender, Message } from "./Message";
+import type { Argument, FieldArray, LogCallback } from "./types";
 import { BrowserFormatter } from "./formatter/BrowserFormatter";
 import { ServerFormatter } from "./formatter/ServerFormatter";
-import type { Field } from "./Field";
-import type { Argument, FieldArray, LogCallback } from "./types";
-import type { Extender, Message } from "./Message";
+import { Level } from "./Level";
 import { Time } from "./Time";
 
 export class Logger {

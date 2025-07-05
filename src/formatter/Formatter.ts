@@ -1,7 +1,7 @@
-import { Field } from "../Field";
-import type { Argument } from "../types";
 import type { Level } from "../Level";
+import type { Argument } from "../types";
 import type { MessageFormat } from "./MessageFormat";
+import { Field } from "../Field";
 
 /**
  * Abstract formatter for log entry

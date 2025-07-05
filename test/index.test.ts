@@ -1,8 +1,8 @@
-import * as assert from "assert";
-import { describe, it } from "vitest";
-
-import { logger } from "../src";
 import type { Argument } from "../src/types";
+import * as assert from "node:assert";
+
+import { describe, it } from "vitest";
+import { logger } from "../src";
 
 function testLog(level: "trace" | "debug" | "info" | "warn" | "error", skip = false): void {
   const original = console[level];
@@ -59,7 +59,7 @@ function testLog(level: "trace" | "debug" | "info" | "warn" | "error", skip = fa
   assert.strictEqual(args[i++], message);
 }
 
-describe("Logger", () => {
+describe("logger", () => {
   it("should *NOT* log a trace message", () => {
     testLog("trace", true);
   });

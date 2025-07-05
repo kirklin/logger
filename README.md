@@ -16,9 +16,7 @@ pnpm i @kirklin/logger
 ```javascript
 import { field, logger } from "@kirklin/logger";
 
-logger.info("Loading container",
-	field("msg", 1),
-	field("msg2", {"key":value}));
+logger.info("Loading container",	field("msg", 1),	field("msg2", { key: value }));
 ```
 
 ## Formatting
@@ -27,10 +25,10 @@ By default, the logger uses a different formatter depending on whether it detect
 it is running in the browser or not. A custom formatter can be set:
 
 ```javascript
-import { logger, Formatter } from "@kirklin/logger";
+import { Formatter, logger } from "@kirklin/logger";
 
 class MyFormatter extends Formatter {
-	// implementation ...
+  // implementation ...
 }
 
 logger.formatter = new MyFormatter();

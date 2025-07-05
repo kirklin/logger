@@ -1,8 +1,8 @@
 import type { Level } from "../Level";
 import type { Argument } from "../types";
+import type { MessageFormat } from "./MessageFormat";
 import { doLog } from "../utils";
 import { Formatter } from "./Formatter";
-import type { MessageFormat } from "./MessageFormat";
 
 /**
  * Display logs on the command line using ANSI color codes. Fields are displayed
@@ -27,7 +27,7 @@ export class ServerFormatter extends Formatter {
   }
 
   private hexToRgb(hex: string): [number, number, number] {
-    const integer = parseInt(hex.substring(1), 16);
+    const integer = Number.parseInt(hex.substring(1), 16);
     return [(integer >> 16) & 0xFF, (integer >> 8) & 0xFF, integer & 0xFF];
   }
 
@@ -39,12 +39,12 @@ export class ServerFormatter extends Formatter {
     message.fields.forEach(field => (obj[field.identifier] = field.value));
     doLog(
       level,
-            `[%s] ${message.format} %s%s%s`,
-            new Date().toISOString(),
-            ...message.args,
-            this.style("#8c8c8c"),
-            JSON.stringify(obj),
-            this.reset(),
+      `[%s] ${message.format} %s%s%s`,
+      new Date().toISOString(),
+      ...message.args,
+      this.style("#8c8c8c"),
+      JSON.stringify(obj),
+      this.reset(),
     );
   }
 }

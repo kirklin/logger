@@ -9,6 +9,6 @@ export class Time {
  * Log how long something took. Call this before doing the thing then pass it
  * into the logger after finished to log the time it took.
  */
-export const time = (expected: number): Time => {
+export function time(expected: number): Time {
   return new Time(expected, Date.now());
-};
+}

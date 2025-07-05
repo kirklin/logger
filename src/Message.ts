@@ -1,5 +1,5 @@
-import type { FieldArray, LogCallback } from "./types";
 import type { Level } from "./Level";
+import type { FieldArray, LogCallback } from "./types";
 
 /**
  * Represents a log message, its fields, level, and color.

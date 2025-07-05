@@ -6,15 +6,15 @@ import type { Argument } from "../types";
  */
 export interface MessageFormat {
   /**
-     * For example, something like `[%s] %s`.
-     */
+   * For example, something like `[%s] %s`.
+   */
   format: "";
   /**
-     * The arguments that get applied to the format string.
-     */
+   * The arguments that get applied to the format string.
+   */
   args: string[];
   /**
-     * The fields to add under the message.
-     */
+   * The fields to add under the message.
+   */
   fields: Field<Argument>[];
 }
