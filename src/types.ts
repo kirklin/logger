@@ -7,7 +7,7 @@ import type { Level } from "./Level";
 export interface LogObject {
   level: Level;
   message: string;
-  fields: FieldArray;
+  args: any[];
   date: Date;
   name?: string;
 }
@@ -27,4 +27,4 @@ export type FieldArray = Array<Field<Argument> | undefined>;
  * Functions can be used to remove the need to perform operations when the
  * logging level won't output the result anyway.
  */
-export type LogCallback = () => [string, ...FieldArray];
+export type LogCallback = () => any[];

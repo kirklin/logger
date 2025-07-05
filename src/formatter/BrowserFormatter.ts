@@ -1,6 +1,6 @@
-import type { Field } from "../Field";
 import type { Argument, LogObject } from "../types";
 import type { MessageFormat } from "./MessageFormat";
+import { Field } from "../Field";
 import { Level } from "../Level";
 import { Time } from "../Time";
 import { Formatter } from "./Formatter";
@@ -17,12 +17,12 @@ export class BrowserFormatter extends Formatter {
   }
 
   public format(logObject: LogObject): MessageFormat {
-    const { level, message, fields, date, name } = logObject;
+    const { level, message, args, date, name } = logObject;
 
     const messageFormat: MessageFormat = {
       format: "",
       args: [],
-      fields: [], // Will be populated with non-time fields for the transport
+      fields: [], // Will be populated with actual Field instances for the transport
     };
 
     const push = (arg: Argument, color?: string, weight?: string) => {
@@ -52,14 +52,26 @@ export class BrowserFormatter extends Formatter {
     }
 
     // Message
-    push(message);
+    if (message) {
+      push(message);
+    }
 
     const now = date.getTime();
-    const filteredFields = fields.filter((f): f is Field<Argument> => !!f);
-    const times = filteredFields.filter((f): f is Field<Time> => f.value instanceof Time);
+    const otherArgs: any[] = [];
+    const fields: Field<any>[] = [];
 
-    // Pass other fields to the transport to be rendered in the group.
-    messageFormat.fields = filteredFields.filter(f => !(f.value instanceof Time));
+    args.forEach((arg) => {
+      if (arg instanceof Field) {
+        fields.push(arg);
+      } else {
+        otherArgs.push(arg);
+      }
+    });
+
+    const times = fields.filter((f): f is Field<Time> => f.value instanceof Time);
+
+    // Pass other fields and args to the transport to be rendered in the group.
+    messageFormat.fields = fields.filter(f => !(f.value instanceof Time)).concat(otherArgs);
 
     // Time Fields
     if (times.length > 0) {

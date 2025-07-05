@@ -1,6 +1,6 @@
-import type { Field } from "../Field";
 import type { Argument, LogObject } from "../types";
 import type { MessageFormat } from "./MessageFormat";
+import { Field } from "../Field";
 import { Level } from "../Level";
 import { Time } from "../Time";
 import { Formatter } from "./Formatter";
@@ -17,12 +17,12 @@ export class ServerFormatter extends Formatter {
   }
 
   public format(logObject: LogObject): MessageFormat {
-    const { level, message, fields, date, name } = logObject;
+    const { level, message, args, date, name } = logObject;
 
     const messageFormat: MessageFormat = {
       format: "",
       args: [],
-      fields: [],
+      fields: [], // This will be populated with actual Field instances
     };
 
     const push = (arg: Argument, color?: string, weight?: string) => {
@@ -56,12 +56,24 @@ export class ServerFormatter extends Formatter {
     }
 
     // Message
-    push(message);
+    if (message) {
+      push(message);
+    }
 
     const now = date.getTime();
-    const filteredFields = fields.filter((f): f is Field<Argument> => !!f);
-    const times = filteredFields.filter((f): f is Field<Time> => f.value instanceof Time);
-    const otherFields = filteredFields.filter(f => !(f.value instanceof Time));
+    const otherArgs: any[] = [];
+    const fields: Field<any>[] = [];
+
+    args.forEach((arg) => {
+      if (arg instanceof Field) {
+        fields.push(arg);
+      } else {
+        otherArgs.push(arg);
+      }
+    });
+
+    const times = fields.filter((f): f is Field<Time> => f.value instanceof Time);
+    const otherFields = fields.filter(f => !(f.value instanceof Time));
 
     // Time Fields
     if (times.length > 0) {
@@ -83,6 +95,14 @@ export class ServerFormatter extends Formatter {
       otherFields.forEach(field => (obj[field.identifier] = field.value));
       push(" ");
       push(JSON.stringify(obj), "#8c8c8c");
+    }
+
+    // Other arguments
+    if (otherArgs.length > 0) {
+      otherArgs.forEach((arg) => {
+        push(" ");
+        push(arg);
+      });
     }
 
     return messageFormat;

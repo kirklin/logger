@@ -9,24 +9,31 @@ export class ConsoleTransport implements Transport {
   public log(logObject: LogObject): void {
     const message = this.formatter.format(logObject);
 
-    // In a browser, fields are displayed in a group.
-    if (message.fields.length > 0 && typeof console.groupCollapsed === "function") {
+    // In a browser, fields are displayed in a group, but only if there's a message.
+    if (logObject.message && message.fields.length > 0 && typeof console.groupCollapsed === "function") {
       console.groupCollapsed(message.format, ...message.args);
-      message.fields.forEach((field) => {
-        const style = "color: #3794ff; font-weight: bold";
-        let name = "";
-        if (
-          typeof field.value !== "undefined"
-          && field.value.constructor
-          && field.value.constructor.name
-        ) {
-          name = ` (${field.value.constructor.name})`;
+      message.fields.forEach((item) => {
+        // Handle Field instances
+        if (item && typeof item === "object" && "identifier" in item && "value" in item) {
+          const style = "color: #3794ff; font-weight: bold";
+          let name = "";
+          if (
+            typeof item.value !== "undefined"
+            && item.value.constructor
+            && item.value.constructor.name
+          ) {
+            name = ` (${item.value.constructor.name})`;
+          }
+          doLog(logObject.level, `%c${item.identifier}%c${name}:`, style, "color: inherit", item.value);
+        } else {
+          // Handle raw objects
+          doLog(logObject.level, item);
         }
-        doLog(logObject.level, `%c${field.identifier}%c${name}:`, style, "color: inherit", field.value);
       });
       console.groupEnd();
     } else {
-      doLog(logObject.level, message.format, ...message.args);
+      const finalArgs = [...message.args, ...message.fields];
+      doLog(logObject.level, message.format, ...finalArgs);
     }
   }
 }

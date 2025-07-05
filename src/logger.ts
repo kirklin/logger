@@ -1,8 +1,7 @@
-import type { Field } from "./Field";
 import type { Extender, Message } from "./Message";
 import type { Transport } from "./transport/Transport";
-import type { Argument, FieldArray, LogCallback, LogObject } from "./types";
-import { field } from "./Field";
+import type { LogCallback, LogObject } from "./types";
+import { Field } from "./Field";
 import { BrowserFormatter } from "./formatter/BrowserFormatter";
 import { ServerFormatter } from "./formatter/ServerFormatter";
 import { Level } from "./Level";
@@ -27,7 +26,7 @@ export class Logger {
   public constructor(
     transports: Transport[],
     private readonly name?: string,
-    private readonly defaultFields?: FieldArray,
+    private readonly defaultArgs?: any[],
     private readonly extenders: Extender[] = [],
   ) {
     this.transports = transports;
@@ -66,52 +65,37 @@ export class Logger {
     this.extenders.push(extender);
   }
 
-  public info(fn: LogCallback): void;
-  public info(message: string, ...fields: FieldArray): void;
-  public info(message: LogCallback | string, ...fields: FieldArray): void {
+  public info(...args: any[]): void {
     this.handle({
-      message,
-      fields,
+      args,
       level: Level.Info,
     });
   }
 
-  public warn(fn: LogCallback): void;
-  public warn(message: string, ...fields: FieldArray): void;
-  public warn(message: LogCallback | string, ...fields: FieldArray): void {
+  public warn(...args: any[]): void {
     this.handle({
-      message,
-      fields,
+      args,
       level: Level.Warn,
     });
   }
 
-  public trace(fn: LogCallback): void;
-  public trace(message: string, ...fields: FieldArray): void;
-  public trace(message: LogCallback | string, ...fields: FieldArray): void {
+  public trace(...args: any[]): void {
     this.handle({
-      message,
-      fields,
+      args,
       level: Level.Trace,
     });
   }
 
-  public debug(fn: LogCallback): void;
-  public debug(message: string, ...fields: FieldArray): void;
-  public debug(message: LogCallback | string, ...fields: FieldArray): void {
+  public debug(...args: any[]): void {
     this.handle({
-      message,
-      fields,
+      args,
       level: Level.Debug,
     });
   }
 
-  public error(fn: LogCallback): void;
-  public error(message: string, ...fields: FieldArray): void;
-  public error(message: LogCallback | string, ...fields: FieldArray): void {
+  public error(...args: any[]): void {
     this.handle({
-      message,
-      fields,
+      args,
       level: Level.Error,
     });
   }
@@ -120,8 +104,8 @@ export class Logger {
    * Returns a sub-logger with a name.
    * Each name is deterministically generated a color.
    */
-  public named(name: string, ...fields: FieldArray): Logger {
-    const l = new Logger(this.transports, name, fields, this.extenders);
+  public named(name: string, ...args: any[]): Logger {
+    const l = new Logger(this.transports, name, args, this.extenders);
     if (this.muted) {
       l.mute();
     }
@@ -129,23 +113,30 @@ export class Logger {
   }
 
   private _log(message: Message) {
-    let passedFields = message.fields || [];
-    if (typeof message.message === "function") {
-      const values = message.message();
-      message.message = values.shift() as string;
-      passedFields = values as FieldArray;
+    let args = message.args || [];
+    // Handle log callback
+    if (args.length === 1 && typeof args[0] === "function") {
+      args = (args[0] as LogCallback)();
     }
 
-    const fields = (
-      this.defaultFields
-        ? passedFields.concat(this.defaultFields)
-        : passedFields
-    ).filter((f): f is Field<Argument> => !!f);
+    // Extract message and fields
+    let logMessage: string;
+    let logArgs: any[];
+
+    if (typeof args[0] === "string") {
+      logMessage = args[0];
+      logArgs = args.slice(1);
+    } else {
+      logMessage = "";
+      logArgs = args;
+    }
+
+    const finalArgs = this.defaultArgs ? logArgs.concat(this.defaultArgs) : logArgs;
 
     const logObject: LogObject = {
       level: message.level,
-      message: message.message,
-      fields,
+      message: logMessage,
+      args: finalArgs,
       date: new Date(),
       name: this.name,
     };
@@ -171,11 +162,11 @@ export class Logger {
       const repeated = (this._lastLog.count || 0) - this.throttleMin;
       if (this._lastLog.message && repeated > 0) {
         const lastMessage = this._lastLog.message;
-        const fields = lastMessage.fields || [];
+        const args = lastMessage.args || [];
         if (repeated > 1) {
-          fields.push(field("repeated", `${repeated} times`));
+          args.push(new Field("repeated", `${repeated} times`));
         }
-        this._log({ ...lastMessage, fields });
+        this._log({ ...lastMessage, args });
         this._lastLog.count = 1;
       }
 
@@ -192,7 +183,7 @@ export class Logger {
 
     if (diffTime < this.throttle) {
       try {
-        const serializedLog = JSON.stringify([message.message, message.fields]);
+        const serializedLog = JSON.stringify(message.args);
         const isSameLog = this._lastLog.serialized === serializedLog;
         this._lastLog.serialized = serializedLog;
         if (isSameLog) {
