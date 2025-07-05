@@ -8,7 +8,6 @@ export interface Message {
   message: string | LogCallback;
   fields?: FieldArray;
   level: Level;
-  tagColor: string;
 }
 
 /**

@@ -8,11 +8,11 @@ export interface MessageFormat {
   /**
    * For example, something like `[%s] %s`.
    */
-  format: "";
+  format: string;
   /**
    * The arguments that get applied to the format string.
    */
-  args: string[];
+  args: any[];
   /**
    * The fields to add under the message.
    */

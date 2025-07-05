@@ -1,4 +1,16 @@
 import type { Field } from "./Field";
+import type { Level } from "./Level";
+
+/**
+ * Represents a processed log entry that can be handled by a transport.
+ */
+export interface LogObject {
+  level: Level;
+  message: string;
+  fields: FieldArray;
+  date: Date;
+  name?: string;
+}
 
 /**
  * A generic argument to log alongside a message.

@@ -1,17 +1,18 @@
 import type { Field } from "./Field";
-import type { Formatter } from "./formatter/Formatter";
 import type { Extender, Message } from "./Message";
-import type { Argument, FieldArray, LogCallback } from "./types";
+import type { Transport } from "./transport/Transport";
+import type { Argument, FieldArray, LogCallback, LogObject } from "./types";
 import { field } from "./Field";
 import { BrowserFormatter } from "./formatter/BrowserFormatter";
 import { ServerFormatter } from "./formatter/ServerFormatter";
 import { Level } from "./Level";
-import { Time } from "./Time";
+import { ConsoleTransport } from "./transport/ConsoleTransport";
 
 export class Logger {
   public level = Level.Info;
   public throttle = 1000;
   public throttleMin = 5;
+  public transports: Transport[] = [];
 
   private readonly nameColor?: string;
   private muted = false;
@@ -24,11 +25,12 @@ export class Logger {
   } = {};
 
   public constructor(
-    private _formatter: Formatter,
+    transports: Transport[],
     private readonly name?: string,
     private readonly defaultFields?: FieldArray,
     private readonly extenders: Extender[] = [],
   ) {
+    this.transports = transports;
     if (name) {
       this.nameColor = this.hashStringToColor(name);
     }
@@ -53,14 +55,6 @@ export class Logger {
     }
   }
 
-  public set formatter(formatter: Formatter) {
-    this._formatter = formatter;
-  }
-
-  public get formatter() {
-    return this._formatter;
-  }
-
   /**
    * Suppresses all output
    */
@@ -78,7 +72,6 @@ export class Logger {
     this.handle({
       message,
       fields,
-      tagColor: "#66ccff",
       level: Level.Info,
     });
   }
@@ -89,7 +82,6 @@ export class Logger {
     this.handle({
       message,
       fields,
-      tagColor: "#ffae00",
       level: Level.Warn,
     });
   }
@@ -100,7 +92,6 @@ export class Logger {
     this.handle({
       message,
       fields,
-      tagColor: "#9e9e9e",
       level: Level.Trace,
     });
   }
@@ -111,7 +102,6 @@ export class Logger {
     this.handle({
       message,
       fields,
-      tagColor: "#ffb8da",
       level: Level.Debug,
     });
   }
@@ -122,7 +112,6 @@ export class Logger {
     this.handle({
       message,
       fields,
-      tagColor: "#ff0000",
       level: Level.Error,
     });
   }
@@ -132,7 +121,7 @@ export class Logger {
    * Each name is deterministically generated a color.
    */
   public named(name: string, ...fields: FieldArray): Logger {
-    const l = new Logger(this._formatter, name, fields, this.extenders);
+    const l = new Logger(this.transports, name, fields, this.extenders);
     if (this.muted) {
       l.mute();
     }
@@ -153,36 +142,17 @@ export class Logger {
         : passedFields
     ).filter((f): f is Field<Argument> => !!f);
 
-    const now = Date.now();
-    let times: Array<Field<Time>> = [];
-    const hasFields = fields && fields.length > 0;
-    if (hasFields) {
-      times = fields.filter(f => f.value instanceof Time);
-      this._formatter.push(fields);
-    }
+    const logObject: LogObject = {
+      level: message.level,
+      message: message.message,
+      fields,
+      date: new Date(),
+      name: this.name,
+    };
 
-    this._formatter.tag(Level[message.level].toLowerCase(), message.tagColor);
-    if (this.name && this.nameColor) {
-      this._formatter.tag(this.name, this.nameColor);
+    for (const transport of this.transports) {
+      transport.log(logObject);
     }
-    this._formatter.push(message.message);
-    if (times.length > 0) {
-      times.forEach((time) => {
-        const diff = now - time.value.ms;
-        const expPer = diff / time.value.expected;
-        const min = 125 * (1 - expPer);
-        const max = 125 + min;
-        const green = expPer < 1 ? max : min;
-        const red = expPer >= 1 ? max : min;
-        this._formatter.push(` ${time.identifier}=`, "#3390ff");
-        this._formatter.push(
-          `${diff}ms`,
-          this.rgbToHex(red > 0 ? red : 0, green > 0 ? green : 0, 0),
-        );
-      });
-    }
-
-    this._formatter.write(message.level);
 
     this.extenders.forEach((extender) => {
       extender({
@@ -267,8 +237,10 @@ export class Logger {
   }
 }
 
-export const logger = new Logger(
-  typeof process === "undefined" || typeof process.stdout === "undefined"
-    ? new BrowserFormatter()
-    : new ServerFormatter(),
-);
+export const logger = new Logger([
+  new ConsoleTransport(
+    typeof process === "undefined" || typeof process.stdout === "undefined"
+      ? new BrowserFormatter()
+      : new ServerFormatter(),
+  ),
+]);
