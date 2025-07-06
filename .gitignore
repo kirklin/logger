@@ -5,6 +5,7 @@ dist
 *.tgz
 lib-cov
 .cache
+docs
 
 ######################
 # Node
