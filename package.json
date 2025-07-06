@@ -1,7 +1,7 @@
 {
   "name": "@kirklin/logger",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packageManager": "pnpm@10.12.4",
   "description": "A modern, flexible, and elegant logger for Node.js and the browser.",
   "author": "Kirk Lin <https://github.com/kirklin>",
